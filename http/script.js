@@ -8,11 +8,13 @@ async function draw_plot(endpoint, element_id, title, low, high) {
     }
     var plot = document.getElementById(element_id);
     if (typeof Plotly !== "undefined") {
+	plot.classList.add("plots");
 	Plotly.react(plot, [data],
 		     {title: title,
 		      font: {size: 18}},
 		     {responsive: true});
     } else {
+	plot.classList.remove("plots");
 	var html_list = `<h3>${title}</h3>\n`;
 	html_list = html_list + "<table>\n";
 	for (var i = 0, size = data.x.length; i < size; i++) {
