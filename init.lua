@@ -15,14 +15,24 @@ if node.getpartitiontable().lfs_size > 0 then
    pcall(node.flashindex("_init"))
 end
 
+gpio.mode(5, gpio.INPUT)
+wifi_info = ""
+T = 5
+
 if file.exists("httpserver-compile.lua") then
    dofile("httpserver-compile.lua")
    file.remove("httpserver-compile.lua")
 end
-
 
 -- Set up NodeMCU's WiFi
 dofile("httpserver-wifi.lc")
 
 -- Start nodemcu-httpsertver
 dofile("httpserver-init.lc")
+
+tmr.create():alarm(
+   2000, tmr.ALARM_SINGLE,
+   function()
+      dofile("main.lua")
+   end
+)
