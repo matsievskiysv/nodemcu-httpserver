@@ -28,9 +28,9 @@ end
 GPIO8bit.backlight = function(self, on)
    if self._bus_args.bl ~= nil then
       if on then
-	 gpio.write(bus_args.bl, gpio.HIGH)
+	 gpio.write(self._bus_args.bl, gpio.HIGH)
       else
-	 gpio.write(bus_args.bl, gpio.LOW)
+	 gpio.write(self._bus_args.bl, gpio.LOW)
       end
    end
 end

@@ -37,6 +37,7 @@ end
 I2C4bit.init = function(self)
    i2c.setup(self._bus_args.id, self._bus_args.sda, self._bus_args.scl, self._bus_args.speed)
    self._backlight = true
+   -- init sequence from datasheet
    self._backend.command(self, 0x33)
    self._backend.command(self, 0x32)
 end

@@ -44,16 +44,16 @@ LiquidCrystal._displaycontrol = 0
 LiquidCrystal._displaymode = 0
 LiquidCrystal._backlight = false
 
-LiquidCrystal.init = function(self, bus, bus_args, fourbitmode, oneline, eightdots, busyloop)
+LiquidCrystal.init = function(self, bus, bus_args, fourbitmode, onelinemode, eightdotsmode, column_width, insert_delay)
    self._bus_args = bus_args
    if bus == "I2C" then
       assert(fourbitmode, "8bit mode not supported")
-      self._backend = dofile "I2C4bit.lua"
+      self._backend = dofile "i2c4bit.lua"
    elseif bus == "GPIO" then
       if fourbitmode then
-	 self._backend = dofile "GPIO4bit.lua"
+	 self._backend = dofile "gpio4bit.lua"
       else
-	 self._backend = dofile "GPIO8bit.lua"
+	 self._backend = dofile "gpio8bit.lua"
       end
    else
       error(string.format("%s backend is not implemented", bus))
@@ -65,17 +65,24 @@ LiquidCrystal.init = function(self, bus, bus_args, fourbitmode, oneline, eightdo
       self._displayfunction = bit.bor(self._displayfunction, LCD_8BITMODE)
    end
 
-   if oneline then
+   if onelinemode then
       self._displayfunction = bit.bor(self._displayfunction, LCD_1LINE)
    else
       self._displayfunction = bit.bor(self._displayfunction, LCD_2LINE)
    end
 
-   if eightdots then
+   if eightdotsmode then
       self._displayfunction = bit.bor(self._displayfunction, LCD_5x8DOTS)
    else
       self._displayfunction = bit.bor(self._displayfunction, LCD_5x10DOTS)
    end
+
+   self._offsets = {0, 0x40}
+   if column_width ~= nil then
+      self._offsets[3] =  0 + column_width
+      self._offsets[4] =  0x40 + column_width
+   end
+   self._insert_delay = insert_delay
 
    self._backend.init(self)
    self._backend.command(self, bit.bor(LCD_FUNCTIONSET, self._displayfunction))
@@ -87,20 +94,24 @@ end
 
 LiquidCrystal.clear = function(self)
    self._backend.command(self, LCD_CLEARDISPLAY)
-   if self._busyloop then
+   if self._insert_delay then
       tmr.delay(2000)
    end
 end
 
 LiquidCrystal.home = function(self)
    self._backend.command(self, LCD_RETURNHOME)
-   if self._busyloop then
+   if self._insert_delay then
       tmr.delay(2000)
    end
 end
 
-LiquidCrystal.cursorMove = function(self, position)
-   self._backend.command(self, bit.bor(LCD_SETDDRAMADDR, position))
+LiquidCrystal.cursorMove = function(self, col, row)
+   if row ~= nil then
+      self._backend.command(self, bit.bor(LCD_SETDDRAMADDR, col + self._offsets[row] - 1))
+   else
+      self._backend.command(self, bit.bor(LCD_SETDDRAMADDR, col))
+   end
 end
 
 LiquidCrystal.display = function(self, on)
@@ -165,10 +176,34 @@ LiquidCrystal.autoscroll = function(self, on)
    self._backend.command(self, bit.bor(LCD_ENTRYMODESET, self._displaymode))
 end
 
-LiquidCrystal.write = function(self, str)
-   for i=1,#str do
-      self._backend.write(self, string.byte(str, i))
+LiquidCrystal.write = function(self, ...)
+   for _, x in ipairs({...}) do
+      if type(x) == "number" then
+	 self._backend.write(self, x)
+      end
+      if type(x) == "string" then
+	 for i=1,#x do
+	    self._backend.write(self, string.byte(x, i))
+	    if self._insert_delay then
+	       tmr.delay(800)
+	    end
+	 end
+      end
+      if self._insert_delay then
+	 tmr.delay(800)
+      end
    end
+end
+
+LiquidCrystal.customChar = function(self, index, bytes)
+   self._backend.command(self, bit.bor(LCD_SETCGRAMADDR, bit.lshift(bit.band(index, 0x7), 3)))
+   for _, b in ipairs(bytes) do
+      self._backend.write(self, b)
+      if self._insert_delay then
+	 tmr.delay(800)
+      end
+   end
+   self:home()
 end
 
 LiquidCrystal.backlight = function(self, on)

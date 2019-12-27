@@ -28,8 +28,8 @@ local function readT(pin, addr)
    return t
 end
 
-lc = dofile("LiquidCrystal.lua")
-lc:init("I2C", {address=0x27,id=0,sda=DISP_D,scl=DISP_C,speed=i2c.SLOW}, true, false, true, true)
+lc = dofile("liquidcrystal.lua")
+lc:init("I2C", {address=0x27,id=0,sda=DISP_D,scl=DISP_C,speed=i2c.SLOW}, true, false, true, 20, true)
 
 lc:write("Please, wait...")
 readT(TEMP_PIN, addr)
@@ -54,15 +54,14 @@ mytimer:register(
       lc:clear()
       lc:home()
       lc:write(string.format("Temperature: %dC\223", temperature or 0))
-      lc:cursorMove(40)
+      lc:cursorMove(1,2)
       lc:write(string.format("Humidity: %d%%", humidity or 0))
       buffer_t:set(temperature)
       buffer_h:set(humidity)
 
-      lc:cursorMove(20)
+      lc:cursorMove(1,3)
       lc:write(wifi_info)
-      lc:cursorMove(40)
-      for _=1,20 do lc:cursorRight() end
+      lc:cursorMove(1,4)
       lc:write(wifi.sta.getip() or wifi.ap.getip())
       collectgarbage()
    end

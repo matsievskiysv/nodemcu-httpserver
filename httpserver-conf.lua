@@ -34,8 +34,8 @@ end
 -- These apply only when connecting to a router as a client
 if (conf.wifi.mode == wifi.STATION) or (conf.wifi.mode == wifi.STATIONAP) then
    conf.wifi.station = {}
-   conf.wifi.station.ssid = "WaFfle2"        -- Name of the WiFi network you want to join
-   conf.wifi.station.pwd =  "blue_potato"                -- Password for the WiFi network
+   conf.wifi.station.ssid = "Internet"        -- Name of the WiFi network you want to join
+   conf.wifi.station.pwd =  "password"                -- Password for the WiFi network
    wifi_info = conf.wifi.station.ssid
 end
 
